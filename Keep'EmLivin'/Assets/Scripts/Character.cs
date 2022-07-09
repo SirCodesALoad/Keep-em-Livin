@@ -6,6 +6,8 @@ public class Character : MonoBehaviour
 {
     [SerializeField] private readonly float healthMax = 100f;
     [SerializeField] private float health = 100f;
+    public bool isAlly = false;
+
 
     [SerializeField] private GameObject owner;
 
