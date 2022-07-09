@@ -2,31 +2,56 @@
 using System.Collections.Generic;
 using UnityEngine;
 using InControl;
+using UnityEngine.Events;
 
 //Actions as a monobehiavour?
 //Create somethiing like Damage DATA to carry all the data.
-
+[CreateAssetMenu]
 public class Spell : ScriptableObject
 {
-    [SerializeField] private new string name;
-    [SerializeField] private float castTime;
-    [SerializeField] private float timeSpentCasting;
-    [SerializeField] private PlayerAction action;
-    //private SpellState state = SpellState.ready;
+    [SerializeField] public new string name = "New Spell";
+    [SerializeField] public float castTime = 0f;
+    [SerializeField] public float amount = 0f;
+    [SerializeField] public int amountOfTargets = 0;
+    [SerializeField] public float amountDuring = 0f;
+    [SerializeField] public bool allowOverheal = false;
+    [SerializeField] public bool interuptable = true;
 
-    public delegate void SpellStateEventHandler(Spell sp, Character target);
-    public delegate void UpdateEventHandler(Character target, float deltaTime);
+    //[SerializeField] private PlayerAction action;
+    [SerializeField] private UnityEvent<Spell, TargetData> startCastingEvents;
+    [SerializeField] private UnityEvent<Spell, TargetData> interuptCastingEvents;
+    [SerializeField] private UnityEvent<Spell, TargetData> finishCastingEvents;
+    [SerializeField] private UnityEvent<Spell, TargetData> duringCastingEvents;
 
-    public virtual event SpellStateEventHandler StartCasting; //We start casting the spell.
-    public virtual event SpellStateEventHandler Interupt; //We're interrupted casting the spell.
-    public virtual event SpellStateEventHandler FinishCasting; //We finish casting the spell.
-    public virtual event UpdateEventHandler DuringCasting; //We do something during the casting of the spell.
-
-
-    public static void StartCasting_SingleTargetHeal(Spell sp, Character target)
+    public void StartCasting(TargetData data)
     {
-
+        startCastingEvents.Invoke(this, data);
     }
+    public void DuringCasting(TargetData data)
+    {
+        duringCastingEvents.Invoke(this, data);
+    }
+    public void FinishCasting(TargetData data)
+    {
+        finishCastingEvents.Invoke(this, data);
+    }
+    public void InteruptCastingTargetData (TargetData data)
+    {
+        interuptCastingEvents.Invoke(this, data);
+    }
+}
+
+public class TargetData
+{
+    public Character target;
+    public Character caster;
+
+    public TargetData(Character Target, Character Caster)
+    {
+        target = Target;
+        caster = Caster;
+    }
+
 
 }
 
