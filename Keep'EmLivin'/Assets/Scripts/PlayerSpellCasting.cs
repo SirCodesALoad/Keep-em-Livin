@@ -24,7 +24,9 @@ public class PlayerSpellCasting : MonoBehaviour
     [SerializeField] private SpellBehiavour[] spellList;
     [SerializeField] private GameObject currentSpellBeingCast;
     public float castCounter = 0f;
-    public GameObject selectedAlly;
+    public GameObject selection;
+    public GameObject altSelection;
+    public SlotManager sM;
 
     ControlActions actions;
 
@@ -36,17 +38,20 @@ public class PlayerSpellCasting : MonoBehaviour
         device = InputManager.ActiveDevice;
         control = device.GetControl(InputControlType.Action1);
         actions = new ControlActions();
-
+        selection = null;
+        altSelection = null;
 
         actions.leftClick.AddDefaultBinding(Mouse.LeftButton);
         actions.abilityOne.AddDefaultBinding(Key.E);
         actions.abilityTwo.AddDefaultBinding(Key.R);
+        actions.swapAllyPostion.AddDefaultBinding(Key.H);
     }
 
     private void Update()
     {
         if (actions.leftClick.WasPressed)
         {
+
             Vector2 mousePos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
             //Debug.Log("Mouse Pos X: " + mousePos.x.ToString() + " ");
             Vector3 Worldpos = Camera.main.ScreenToWorldPoint(mousePos);
@@ -55,22 +60,56 @@ public class PlayerSpellCasting : MonoBehaviour
             if (hit.collider != null)
             {
                 Debug.Log("Clicked on " + hit.transform.name);
-                if (hit.collider.gameObject.GetComponent<Character>() != null)
-                {
-                    selectedAlly = hit.collider.gameObject;
-                    Debug.Log("Selected Ally" + selectedAlly.transform.name);
-                }
+                selection = hit.transform.gameObject;
             }
             else
             {
                 Debug.Log("Nothing hit");
-                selectedAlly = null;
+                selection = null;
+            }
+            if (sM.slotsVisible == true)
+            {
+                //slide this into a different function.
+                if(altSelection != null && selection != null)
+                {
+                    if (altSelection.GetComponent<Character>() != null)
+                    {
+                        Debug.Log("Swapping!");
+                        if (altSelection.GetComponent<Slottable>() != null && selection.GetComponent<Slottable>() != null)
+                        {
+                            sM.SwapSlottables(selection.GetComponent<Slottable>(), altSelection.GetComponent<Slottable>());
+                        }
+                        else
+                        {
+                            if (selection.GetComponent<Slot>() != null)
+                            {
+                                Slot slotSelection = selection.GetComponent<Slot>();
+                                if (slotSelection.occupier != null)
+                                {
+                                    sM.SwapSlottables(slotSelection.occupier, altSelection.GetComponent<Slottable>());
+                                }
+                                else
+                                {
+                                    altSelection.GetComponent<Slottable>().ChangeSlot(slotSelection.postion, slotSelection);
+                                }
+                            }
+                        }
+                    }
+                    selection = null;
+                    altSelection = null;
+                }
+                //Even if we selected a slot this frame we can hide the slots interface.
+                sM.HideSlots();
             }
 
         }
 
         if (actions.abilityOne.WasPressed && isCasting != true)
         {
+            if (sM.slotsVisible == true)
+            {
+                sM.HideSlots();
+            }
             //Begin casting.
             if (spellList[0] != null)
             {
@@ -80,11 +119,64 @@ public class PlayerSpellCasting : MonoBehaviour
 
         if (actions.abilityTwo.WasPressed && isCasting != true)
         {
+            if (sM.slotsVisible == true)
+            {
+                sM.HideSlots();
+            }
             //Begin casting.
             if (spellList[1] != null)
             {
                 CastSpell(spellList[1]);
             }
+        }
+
+        if (actions.swapAllyPostion.WasPressed && sM != null)
+        {
+
+            if(sM.slotsVisible != true)
+            {
+                sM.ShowSlots();
+            }
+
+            if (selection != null && altSelection == null && selection.GetComponent<Slottable>() != null)
+            {
+                Debug.Log("Now select the target to swap with.");
+                altSelection = selection;
+                selection = null;
+
+            }
+            else if (selection != null && altSelection != null && selection != altSelection)
+            {
+                Debug.Log("Swapping!");
+                if (altSelection.GetComponent<Slottable>() != null && selection.GetComponent<Slottable>() != null)
+                {
+                    sM.SwapSlottables(selection.GetComponent<Slottable>(), altSelection.GetComponent<Slottable>());
+                }
+                else
+                {
+                    if(selection.GetComponent<Slot>() != null)
+                    {
+                        Slot slotSelection = selection.GetComponent<Slot>();
+                        if (slotSelection.occupier != null)
+                        {
+                            sM.SwapSlottables(slotSelection.occupier, altSelection.GetComponent<Slottable>());
+                        }
+                        else
+                        {
+                            altSelection.GetComponent<Slottable>().ChangeSlot(slotSelection.postion, slotSelection);
+                        }
+                    }
+                }
+                selection = null;
+                altSelection = null;
+                sM.HideSlots();
+            }
+            else if (selection == null && altSelection != null)
+            {
+                altSelection = null;
+                Debug.Log("Canceled Swap");
+            }
+
         }
 
 
@@ -94,11 +186,11 @@ public class PlayerSpellCasting : MonoBehaviour
     private void CastSpell(SpellBehiavour sp)
     {
         StopCoroutine("FadeCastBarOut");
-        if (selectedAlly != null && selectedAlly.GetComponent<Character>() != null)
+        if (selection != null && selection.GetComponent<Character>() != null)
         {
             if (sp.targettingRadius > 0)
             {
-                Collider2D[] hit = Physics2D.OverlapCircleAll(new Vector2(selectedAlly.transform.position.x, selectedAlly.transform.position.y), spellList[0].targettingRadius);
+                Collider2D[] hit = Physics2D.OverlapCircleAll(new Vector2(selection.transform.position.x, selection.transform.position.y), spellList[0].targettingRadius);
                 Character[] tempList = new Character[hit.Length];
                 int tempListCounter = 0;
                 for (int i = 0; i < hit.Length; i++)
@@ -111,7 +203,7 @@ public class PlayerSpellCasting : MonoBehaviour
                 }
 
                 Character[] targetList = new Character[tempListCounter + 1];
-                targetList[0] = selectedAlly.GetComponent<Character>();
+                targetList[0] = selection.GetComponent<Character>();
                 for (int i = 0; i < tempListCounter; i++)
                 {
                     if (tempList[i] == null || i > targetList.Length)
@@ -131,7 +223,7 @@ public class PlayerSpellCasting : MonoBehaviour
                 currentSpellBeingCast = Instantiate(sp.gameObject, spawnablesObject.transform);
                 currentSpellBeingCast.GetComponent<SpellBehiavour>().player = this;
                 Character[] targetList = new Character[1];
-                targetList[0] = selectedAlly.GetComponent<Character>();
+                targetList[0] = selection.GetComponent<Character>();
                 currentSpellBeingCast.GetComponent<SpellBehiavour>().target = new TargetData(targetList);
             }
 
@@ -144,6 +236,10 @@ public class PlayerSpellCasting : MonoBehaviour
             castingBar.fillAmount = 0f;
             castingBarCastingTime.text = "" + sp.castTime;
             castingBarSpellIcon.sprite = sp.icon;
+        }
+        else
+        {
+            //Code for selecting a target here.
         }
 
     }

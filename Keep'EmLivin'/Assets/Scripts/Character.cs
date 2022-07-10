@@ -11,8 +11,6 @@ public class Character : MonoBehaviour
 
     [SerializeField] private GameObject owner;
 
-    public AllyPostionSlot slotOccupied;
-
 
     public void RecieveHealing(float amount, bool allowOverhealing)
     {

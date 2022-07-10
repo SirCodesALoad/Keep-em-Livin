@@ -26,7 +26,7 @@ public class SpellBehiavour : MonoBehaviour
 
     public virtual void Start()
     {
-        timeLeftToSpellFinishes = Time.deltaTime + castTime;
+        timeLeftToSpellFinishes = castTime;
          StartCast();
     }
 

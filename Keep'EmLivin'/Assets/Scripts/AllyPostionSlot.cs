@@ -5,22 +5,59 @@ using UnityEngine;
 public class AllyPostionSlot : MonoBehaviour
 {
 
-    public GameObject[] slots;
+    [SerializeField] private Slot[] slots;
 
 
 
     // Start is called before the first frame update
     void Start()
     {
-        slots = new GameObject[transform.childCount];
+        slots = new Slot[transform.childCount];
 
-        if (transform.childCount >= 2)
+
+        for (int i = 0; i < transform.childCount; i++)
         {
-            for (int i = 0; i < transform.childCount - 1; i++)
+            slots[i] = transform.GetChild(i).GetComponent<Slot>();
+        }
+
+    }
+
+
+    public Slot[] GetAllSlots()
+    {
+        return slots;
+        
+    }
+
+    public Slot GetEmptySlot()
+    {
+
+        for (int i = 0; i < slots.Length - 1; i++)
+        {
+            if (slots[i].occupier == null)
             {
-                slots[i] = transform.GetChild(i).GetComponent<GameObject>();
+                return slots[i];
             }
         }
+        return null;
+    }
+
+    public void AddToSlot(Slottable thingToTakeUpSlot)
+    {
+        ///Adds a slottable object to an empty slot.
+        Slot slot = GetEmptySlot();
+
+        if (slot != null) {
+
+            thingToTakeUpSlot.ChangeSlot(this, slot);
+        }
+
+    }
+
+    public void AddToSlot(Slottable thingToTakeUpSlot, Slot slot)
+    {
+        ///Adds a slottable object to specific slot. Note we don't care what's there already.
+        thingToTakeUpSlot.ChangeSlot(this, slot);
 
     }
 
@@ -33,6 +70,16 @@ public class AllyPostionSlot : MonoBehaviour
         return null;
 
     }
-    
+
+    public Slottable GetSlottableInSlot(int slot)
+    {
+        if (slots[slot] != null && slots[slot].transform.GetChild(0).GetComponent<Slottable>() != null)
+        {
+            return slots[slot].transform.GetChild(0).GetComponent<Slottable>();
+        }
+        return null;
+
+    }
+
 
 }
