@@ -28,6 +28,18 @@ public class AllyPostionSlot : MonoBehaviour
         return slots;
         
     }
+    public Slot GetSlotsNearestOccupiedNeighbour(Slot aSlot)
+    {
+        for (int i = 0; i < slots.Length - 1; i++)
+        {
+            if (slots[i].occupier != null && slots[i] != aSlot)
+            {
+                return slots[i];
+            }
+        }
+        return null;
+
+    }
 
     public Slot GetEmptySlot()
     {

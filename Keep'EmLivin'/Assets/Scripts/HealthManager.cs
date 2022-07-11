@@ -14,6 +14,15 @@ public class HealthManager : MonoBehaviour
         
     }
 
+    public bool isAlive()
+    {
+        if(health <= 0)
+        {
+            return false;
+        }
+        return true;
+    }
+
     public void RecieveHealing(float amount, bool allowOverhealing)
     {
         //We're getting healed, let's increase our health! Or not if we've got too much or too little.

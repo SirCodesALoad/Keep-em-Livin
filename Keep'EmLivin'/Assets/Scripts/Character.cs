@@ -11,6 +11,14 @@ public class Character : MonoBehaviour
 
     [SerializeField] private GameObject owner;
 
+    public bool IsAlive()
+    {
+        if (health <= 0)
+        {
+            return false;
+        }
+        return true;
+    }
 
     public void RecieveHealing(float amount, bool allowOverhealing)
     {
