@@ -1269,7 +1269,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 50
+  armor: 20
   isAlly: 1
+  isAtZero: 0
   owner: {fileID: 0}
 --- !u!114 &769354878
 MonoBehaviour:
@@ -2076,7 +2078,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 50
+  armor: 20
   isAlly: 1
+  isAtZero: 0
   owner: {fileID: 0}
 --- !u!114 &1268718564
 MonoBehaviour:
@@ -2103,8 +2107,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1269765182}
   - component: {fileID: 1269765185}
-  - component: {fileID: 1269765184}
   - component: {fileID: 1269765183}
+  - component: {fileID: 1269765184}
   - component: {fileID: 1269765186}
   m_Layer: 0
   m_Name: Enemy
@@ -2143,9 +2147,11 @@ MonoBehaviour:
   player: {fileID: 60602547}
   target: {fileID: 0}
   state: 2
-  moveSpeed: 400
+  moveSpeed: 50
   attackRanage: 3
   nextWayPointDistance: 3
+  currentWayPoint: 0
+  reachedEndOfPath: 0
 --- !u!50 &1269765184
 Rigidbody2D:
   serializedVersion: 4
@@ -2481,7 +2487,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 50
+  armor: 20
   isAlly: 1
+  isAtZero: 0
   owner: {fileID: 0}
 --- !u!114 &1716640364
 MonoBehaviour:

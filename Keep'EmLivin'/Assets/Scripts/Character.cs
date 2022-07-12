@@ -6,7 +6,11 @@ public class Character : MonoBehaviour
 {
     [SerializeField] private readonly float healthMax = 100f;
     [SerializeField] private float health = 100f;
+    [SerializeField] private readonly float armorBase = 20f;
+    [SerializeField] private float armor = 20f;
     public bool isAlly = false;
+    public bool isAtZero = false;
+
 
 
     [SerializeField] private GameObject owner;
@@ -49,4 +53,60 @@ public class Character : MonoBehaviour
         Debug.Log("Attempted to heal for: " + amount);
 
     }
+
+    public void RecieveDamage(float amount, bool bypassArmor)
+    {
+
+        if (armor >= 0 && bypassArmor == false)
+        {
+            amount = amount * ((100 / (100 + armor)));
+        }
+        else
+        {
+            amount = amount * (2 - (100 / (100 - armor)));
+        }
+
+        health -= amount;
+        if(health < 1)
+        {
+            health = 0;
+            AtZero();
+        }
+
+    }
+
+    public void RecieveDamage(float amount, float armorPenetration)
+    {
+        float tempArmor = armor - armorPenetration;
+        if(tempArmor < 0)
+        {
+            tempArmor = 0;
+        }
+        if (tempArmor >= 0)
+        {
+            amount = amount * ((100 / (100 + tempArmor )));
+        }
+        else
+        {
+            amount = amount * (2 - (100 / (100 - tempArmor)));
+        }
+
+        health -= amount;
+        if (health < 1)
+        {
+            health = 0;
+            AtZero();
+        }
+
+
+
+
+    }
+
+
+    public virtual void  AtZero()
+    {
+        //Here we will ethier play the die animation and destory the object or we'll have them go into a "Downed" state.
+    }
+
 }

@@ -16,6 +16,8 @@ public class EnemyAI : MonoBehaviour
 
     [SerializeField] private float moveSpeed = 150f;
     [SerializeField] private float attackRanage = 3f;
+    [SerializeField] private float attackCooldown = 1f;
+    [SerializeField] private float lastAttack = 0f;
     [SerializeField]  private float nextWayPointDistance = 2f;
 
     private Seeker seeker;
@@ -25,12 +27,14 @@ public class EnemyAI : MonoBehaviour
         
     private CircleCollider2D col;
     private Rigidbody2D rb;
+    private SpriteRenderer sr;
 
     // Start is called before the first frame update
     void Start()
     {
         col = GetComponent<CircleCollider2D>();
         rb = GetComponent<Rigidbody2D>();
+        sr = transform.GetChild(0).GetComponent<SpriteRenderer>();
         seeker = GetComponent<Seeker>();
         PickNewTarget();
     }
@@ -39,20 +43,25 @@ public class EnemyAI : MonoBehaviour
     {
         if (!p.error)
         {
-            p = path;
+            path = p;
             currentWayPoint = 0;
             if (state != State.Attacking)
             {
                 state = State.MovingToTarget;
             }
         }
-
+        else
+        {
+            Debug.Log("There was an Error in requested path: " + p.error);
+        }
 
     }
 
     private void PickNewTarget()
     {
+        Debug.Log("Picking new target");
         Transform closestTarget = player;
+        state = State.Idle;
 
         Collider2D[] hit = Physics2D.OverlapCircleAll(rb.position, 5f);
 
@@ -72,29 +81,32 @@ public class EnemyAI : MonoBehaviour
             }
         }
         target = closestTarget;
-        state = State.Idle;
         seeker.StartPath(rb.position, target.position, OnPathComplete);
     }
 
     private void CheckIfThereIsACloserTarget()
     {
+        Debug.Log("Check if there is a closer target.");
         Transform closestTarget = target;
+        state = State.Idle;
 
         Collider2D[] hit = Physics2D.OverlapCircleAll(rb.position, attackRanage);
 
         for (int i = 0; i < hit.Length; i++)
         {
-            if (hit[i].GetComponent<Character>().isAlly == true && hit[i].GetComponent<Character>().IsAlive() == true)
+            if(hit[i].GetComponent<Character>() != null)
             {
-                if (Vector2.Distance(rb.position, hit[i].transform.position) < Vector2.Distance(rb.position, closestTarget.position))
+                if (hit[i].GetComponent<Character>().isAlly == true && hit[i].GetComponent<Character>().IsAlive() == true)
                 {
-                    //If there is something else closer than the player we can attack, set that to be the new target.
-                    closestTarget = hit[i].transform;
+                    if (Vector2.Distance(rb.position, hit[i].transform.position) < Vector2.Distance(rb.position, closestTarget.position))
+                    {
+                        //If there is something else closer than the player we can attack, set that to be the new target.
+                        closestTarget = hit[i].transform;
+                    }
                 }
             }
         }
         target = closestTarget;
-        state = State.Idle;
         seeker.StartPath(rb.position, target.position, OnPathComplete);
 
     }
@@ -108,23 +120,35 @@ public class EnemyAI : MonoBehaviour
             case State.MovingToTarget:
                 if(path == null)
                 {
+                    Debug.Log("Path is null");
                     return;
                 }
 
                 if(currentWayPoint >= path.vectorPath.Count || Vector2.Distance(rb.position, target.position) <= attackRanage)
                 {
+                    Debug.Log("We've reached the end of our Path!"); 
                     //We've reached the end of our path.
                     reachedEndOfPath = true;
-                    if(transform.GetComponent<Character>().isAlly == true)
+                    if(Vector2.Distance(rb.position, target.position) > attackRanage)
                     {
-                        if(transform.GetComponent<Character>().IsAlive() == true)
+                        //if we're at the end of our path and our target is still outside our attack range.. Our target has moved and we need to
+                        //update our path.
+                        Debug.Log("Target is out of range!");
+                        CheckIfThereIsACloserTarget();
+                    }
+                    if (target.GetComponent<Character>() != null)
+                    {
+                        if (target.GetComponent<Character>().isAlly == true)
                         {
-                            state = State.Attacking;
+                            if (target.GetComponent<Character>().IsAlive() == true)
+                            {
+                                state = State.Attacking;
+                                break;
+                            }
+                            //Our target is an enemy of ours but it's not currently alive! Pick a new target.
+                            PickNewTarget();
                             break;
                         }
-                        //Our target is an enemy of ours but it's not currently alive! Pick a new target.
-                        PickNewTarget();
-                        break;
                     }
                     else
                     {
@@ -137,13 +161,24 @@ public class EnemyAI : MonoBehaviour
                 }
 
                 //Actually apply movement.
+                Debug.Log("Applying force to enemy");
                 Vector2 direction = ((Vector2)path.vectorPath[currentWayPoint] - rb.position).normalized;
+                if (direction.x < 0)
+                {
+                    sr.flipX = true;
+                }
+                else
+                {
+                    sr.flipX = false;
+                }
+
                 Vector2 force = direction * moveSpeed * Time.deltaTime;
-                rb.AddForce(force);
+                rb.velocity = force;
 
                 float distance = Vector2.Distance(rb.position, path.vectorPath[currentWayPoint]);
                 if(distance < nextWayPointDistance)
                 {
+                    
                     currentWayPoint++;
                 }
                 break;
@@ -152,20 +187,26 @@ public class EnemyAI : MonoBehaviour
                 {
                     //If for some reason we're out of range. Switch to moving to the target again.
                     //But first check if there is a closer target.
+                    Debug.Log("Target is out of range!");
                     CheckIfThereIsACloserTarget();
                     state = State.MovingToTarget;
-                    break;
+                    return;
                 }
 
                 if (transform.GetComponent<Character>().IsAlive() == false)
                 {
+                    Debug.Log("Target is not alive!");
 
                     PickNewTarget();
-                    break;
+                    return;
+                }
+                //Attack logic
+                if (Time.time > lastAttack)
+                {
+                    lastAttack = Time.time + attackCooldown;
+                    //Play our attack animation.
                 }
 
-                //Attack logic.
-                //Likely code this as a virtual attack function.
                 break;
             case State.Idle:
                 //if(target != null && Vector2.Distance(rb.position,target.position) > nextWayPointDistance)
