@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Pathfinding;
+using PowerTools;
 
 public class EnemyAI : MonoBehaviour
 {
 
     private enum State
     {
-        MovingToTarget,Attacking,Idle
+        MovingToTarget,Attacking,Idle,Dead
     }
     [SerializeField] private Transform player;
     public Transform target;
@@ -29,14 +30,23 @@ public class EnemyAI : MonoBehaviour
     private Rigidbody2D rb;
     private SpriteRenderer sr;
 
-    // Start is called before the first frame update
+    //Animation and GFX Stuff.
+    public SpriteAnim anim;
+
+    [SerializeField] private AnimationClip[] animations; //0:Idle,1: Move,2: Attack, 3: Death. 4 etc, is extra.
+
+
     void Start()
     {
+        anim = transform.GetChild(0).GetComponent<SpriteAnim>();
+      
+
         col = GetComponent<CircleCollider2D>();
         rb = GetComponent<Rigidbody2D>();
         sr = transform.GetChild(0).GetComponent<SpriteRenderer>();
         seeker = GetComponent<Seeker>();
         PickNewTarget();
+
     }
 
     void OnPathComplete(Path p)
@@ -123,8 +133,8 @@ public class EnemyAI : MonoBehaviour
                     Debug.Log("Path is null");
                     return;
                 }
-
-                if(currentWayPoint >= path.vectorPath.Count || Vector2.Distance(rb.position, target.position) <= attackRanage)
+                UpdateAnim();
+                if (currentWayPoint >= path.vectorPath.Count || Vector2.Distance(rb.position, target.position) <= attackRanage)
                 {
                     Debug.Log("We've reached the end of our Path!"); 
                     //We've reached the end of our path.
@@ -161,16 +171,7 @@ public class EnemyAI : MonoBehaviour
                 }
 
                 //Actually apply movement.
-                Debug.Log("Applying force to enemy");
                 Vector2 direction = ((Vector2)path.vectorPath[currentWayPoint] - rb.position).normalized;
-                if (direction.x < 0)
-                {
-                    sr.flipX = true;
-                }
-                else
-                {
-                    sr.flipX = false;
-                }
 
                 Vector2 force = direction * moveSpeed * Time.deltaTime;
                 rb.velocity = force;
@@ -183,6 +184,7 @@ public class EnemyAI : MonoBehaviour
                 }
                 break;
             case State.Attacking:
+                UpdateAnim();
                 if (Vector2.Distance(rb.position, target.position) > attackRanage)
                 {
                     //If for some reason we're out of range. Switch to moving to the target again.
@@ -192,13 +194,15 @@ public class EnemyAI : MonoBehaviour
                     state = State.MovingToTarget;
                     return;
                 }
-
-                if (transform.GetComponent<Character>().IsAlive() == false)
+                if (target.GetComponent<Character>() != null)
                 {
-                    Debug.Log("Target is not alive!");
+                    if (target.GetComponent<Character>().IsAlive() == false)
+                    {
+                        Debug.Log("Target is not alive!");
 
-                    PickNewTarget();
-                    return;
+                        PickNewTarget();
+                        return;
+                    }
                 }
                 //Attack logic
                 if (Time.time > lastAttack)
@@ -212,10 +216,42 @@ public class EnemyAI : MonoBehaviour
                 //if(target != null && Vector2.Distance(rb.position,target.position) > nextWayPointDistance)
                 //{
                 //    seeker.StartPath(rb.position, target.position, OnPathComplete);
-                    
+
                 //}
+                UpdateAnim();
                 break;
 
         }
     }
+
+    #region Animation Functions
+
+    private void UpdateAnim()
+    {
+        switch (state)
+        {
+            case State.Idle:
+                if (anim.IsPlaying(animations[0]) != true)
+                {
+                    anim.Play(animations[0]);
+                }
+                break;
+            case State.MovingToTarget:
+                if (anim.IsPlaying(animations[1]) != true)
+                {
+                    anim.Play(animations[1]);
+                }
+                break;
+            case State.Attacking:
+                if (anim.IsPlaying(animations[0]) != true  && anim.IsPlaying(animations[2]) != true)
+                {
+                    //If we're not currently playing the attack animation and we're not playing the idle animation. Play the idle animation.
+                    anim.Play(animations[0]);
+                }
+                break;
+        }
+
+    }
+
+    #endregion
 }
