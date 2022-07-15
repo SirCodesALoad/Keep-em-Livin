@@ -15,12 +15,17 @@ public class PlayerSpellCasting : MonoBehaviour
     [SerializeField] private Image castingBar;
     [SerializeField] private Image castingBarSpellIcon;
     [SerializeField] private CanvasGroup castingBarCanvasGroup;
+
+    [SerializeField] private Image manaBar;
     #endregion
 
 
     [SerializeField] private bool isCasting = false;
     [SerializeField] private float mana = 100f;
-    [SerializeField] private float totalMana = 100f;
+    [SerializeField] private float maxMana = 100f;
+    [SerializeField] private float manaRegenRate = 2f;
+    [SerializeField] private float currentTickTimer = 0f;
+
     [SerializeField] private SpellBehiavour[] spellList;
     [SerializeField] private GameObject currentSpellBeingCast;
     public float castCounter = 0f;
@@ -40,6 +45,14 @@ public class PlayerSpellCasting : MonoBehaviour
         actions = new ControlActions();
         selection = null;
         altSelection = null;
+        if (mana == maxMana)
+        {
+            manaBar.fillAmount = 1;
+        }
+        else
+        {
+            manaBar.fillAmount = mana / maxMana % 1;
+        }
 
         actions.leftClick.AddDefaultBinding(Mouse.LeftButton);
         actions.abilityOne.AddDefaultBinding(Key.E);
@@ -49,6 +62,22 @@ public class PlayerSpellCasting : MonoBehaviour
 
     private void Update()
     {
+        if (mana < maxMana)
+        {
+            currentTickTimer += Time.deltaTime;
+            if (currentTickTimer >= 0.5f)
+            {
+                //regen some Mana.
+                currentTickTimer = 0f;
+                mana += manaRegenRate;
+                if(mana > maxMana)
+                {
+                    mana = maxMana;
+                }
+                UpdateManaBar();
+            }
+        }
+
         if (actions.leftClick.WasPressed)
         {
 
@@ -186,7 +215,7 @@ public class PlayerSpellCasting : MonoBehaviour
     private void CastSpell(SpellBehiavour sp)
     {
         StopCoroutine("FadeCastBarOut");
-        if (selection != null && selection.GetComponent<Character>() != null)
+        if (selection != null && selection.GetComponent<Character>() != null && mana > sp.manacost)
         {
             if (sp.targettingRadius > 0)
             {
@@ -229,6 +258,8 @@ public class PlayerSpellCasting : MonoBehaviour
 
 
             isCasting = true;
+            mana -= sp.manacost;
+            UpdateManaBar();
 
             castingBarCanvasGroup.alpha = 1f;
             castingBar.color = sp.castingBarColour;
@@ -244,6 +275,17 @@ public class PlayerSpellCasting : MonoBehaviour
 
     }
 
+    public void UpdateManaBar()
+    {
+        if (mana == maxMana)
+        {
+            manaBar.fillAmount = 1;
+        }
+        else
+        {
+            manaBar.fillAmount = mana / maxMana % 1;
+        }
+    }
 
     public void UpdateCastingBarUI(float timeLeftToSpellFinishes, float overallTimer, float castTime)
     {

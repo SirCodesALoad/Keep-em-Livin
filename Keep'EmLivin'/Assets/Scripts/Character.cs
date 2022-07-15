@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class Character : MonoBehaviour
 {
-    [SerializeField] private readonly float healthMax = 100f;
-    [SerializeField] private float health = 100f;
+    [SerializeField] protected readonly float healthMax = 100f;
+    [SerializeField] protected float health = 100f;
     [SerializeField] private readonly float armorBase = 20f;
     [SerializeField] private float armor = 20f;
     public bool isAlly = false;
@@ -13,7 +13,7 @@ public class Character : MonoBehaviour
 
 
 
-    [SerializeField] private GameObject owner;
+    [SerializeField] protected Character whoDamagedMe;
 
     public bool IsAlive()
     {
@@ -24,7 +24,7 @@ public class Character : MonoBehaviour
         return true;
     }
 
-    public void RecieveHealing(float amount, bool allowOverhealing)
+    public virtual void RecieveHealing(float amount, bool allowOverhealing)
     {
         //We're getting healed, let's increase our health! Or not if we've got too much or too little.
         if (health > healthMax && allowOverhealing == true && health > 0)
@@ -54,9 +54,9 @@ public class Character : MonoBehaviour
 
     }
 
-    public void RecieveDamage(float amount, bool bypassArmor)
+    public virtual void RecieveDamage(float amount, bool bypassArmor, Character whoJustDamagedMe)
     {
-
+        whoDamagedMe = whoJustDamagedMe;
         if (armor >= 0 && bypassArmor == false)
         {
             amount = amount * ((100 / (100 + armor)));
@@ -72,11 +72,12 @@ public class Character : MonoBehaviour
             health = 0;
             AtZero();
         }
-
+        Debug.Log(whoDamagedMe.name + " just dealt: " + amount + " damage to " + gameObject.name);
     }
 
-    public void RecieveDamage(float amount, float armorPenetration)
+    public virtual void RecieveDamage(float amount, float armorPenetration, Character whoJustDamagedMe)
     {
+        whoDamagedMe = whoJustDamagedMe;
         float tempArmor = armor - armorPenetration;
         if(tempArmor < 0)
         {
@@ -97,10 +98,7 @@ public class Character : MonoBehaviour
             health = 0;
             AtZero();
         }
-
-
-
-
+        Debug.Log(whoDamagedMe.name + " just dealt: " + amount + " damage to " + gameObject.name);
     }
 
 

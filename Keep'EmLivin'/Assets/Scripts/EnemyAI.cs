@@ -21,6 +21,9 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float lastAttack = 0f;
     [SerializeField]  private float nextWayPointDistance = 2f;
 
+    [SerializeField] private int numOfAttacks = 0;
+    [SerializeField] private int numOfAttacksToTriggerSpecial = 0;
+
     private Seeker seeker;
     private Path path;
     [SerializeField] private int currentWayPoint = 0;
@@ -29,11 +32,13 @@ public class EnemyAI : MonoBehaviour
     private CircleCollider2D col;
     private Rigidbody2D rb;
     private SpriteRenderer sr;
+    private Transform damageLocation;
+    private Enemy enemy;
 
     //Animation and GFX Stuff.
     public SpriteAnim anim;
 
-    [SerializeField] private AnimationClip[] animations; //0:Idle,1: Move,2: Attack, 3: Death. 4 etc, is extra.
+    [SerializeField] private AnimationClip[] animations; //0:Idle,1: Move,2: Attack, 3: Death. 4: SpecialAttack.. 5 etc, is extra.
 
 
     void Start()
@@ -44,6 +49,7 @@ public class EnemyAI : MonoBehaviour
         col = GetComponent<CircleCollider2D>();
         rb = GetComponent<Rigidbody2D>();
         sr = transform.GetChild(0).GetComponent<SpriteRenderer>();
+        damageLocation = transform.GetChild(1).transform;
         seeker = GetComponent<Seeker>();
         PickNewTarget();
 
@@ -130,39 +136,37 @@ public class EnemyAI : MonoBehaviour
             case State.MovingToTarget:
                 if(path == null)
                 {
-                    Debug.Log("Path is null");
+                    Debug.Log("Path is null or we're still moving when we've reached the end of path.");
                     return;
                 }
                 UpdateAnim();
                 if (currentWayPoint >= path.vectorPath.Count || Vector2.Distance(rb.position, target.position) <= attackRanage)
                 {
-                    Debug.Log("We've reached the end of our Path!"); 
                     //We've reached the end of our path.
                     reachedEndOfPath = true;
                     if(Vector2.Distance(rb.position, target.position) > attackRanage)
                     {
                         //if we're at the end of our path and our target is still outside our attack range.. Our target has moved and we need to
                         //update our path.
-                        Debug.Log("Target is out of range!");
+
                         CheckIfThereIsACloserTarget();
                     }
-                    if (target.GetComponent<Character>() != null)
+                    if (target.GetComponent<Ally>() != null)
                     {
-                        if (target.GetComponent<Character>().isAlly == true)
+                        if (target.GetComponent<Ally>().IsAlive() == true)
                         {
-                            if (target.GetComponent<Character>().IsAlive() == true)
-                            {
-                                state = State.Attacking;
-                                break;
-                            }
-                            //Our target is an enemy of ours but it's not currently alive! Pick a new target.
-                            PickNewTarget();
-                            break;
+                            state = State.Attacking;
+                            return;
                         }
+                        //Our target is an enemy of ours but it's not currently alive! Pick a new target.
+                        PickNewTarget();
+                        return;
+                        
                     }
                     else
                     {
                         state = State.Idle;
+                        return;
                     }
                 }
                 else
@@ -170,18 +174,27 @@ public class EnemyAI : MonoBehaviour
                     reachedEndOfPath = false;
                 }
 
-                //Actually apply movement.
+
                 Vector2 direction = ((Vector2)path.vectorPath[currentWayPoint] - rb.position).normalized;
 
                 Vector2 force = direction * moveSpeed * Time.deltaTime;
-                rb.velocity = force;
-
-                float distance = Vector2.Distance(rb.position, path.vectorPath[currentWayPoint]);
-                if(distance < nextWayPointDistance)
+                if (reachedEndOfPath != true)
                 {
-                    
-                    currentWayPoint++;
+                    rb.velocity = force;
+                    float distance = Vector2.Distance(rb.position, path.vectorPath[currentWayPoint]);
+                    if (distance < nextWayPointDistance)
+                    {
+
+                        currentWayPoint++;
+                    }
                 }
+                else
+                {
+                    //If we've somehow gotten all the way down here, set speed to 0 and move to idle because w're not moving!
+                    rb.velocity = Vector2.zero;
+                    state = State.Idle;
+                }
+                
                 break;
             case State.Attacking:
                 UpdateAnim();
@@ -194,9 +207,9 @@ public class EnemyAI : MonoBehaviour
                     state = State.MovingToTarget;
                     return;
                 }
-                if (target.GetComponent<Character>() != null)
+                if (target.GetComponent<Ally>() != null)
                 {
-                    if (target.GetComponent<Character>().IsAlive() == false)
+                    if (target.GetComponent<Ally>().IsAlive() == false)
                     {
                         Debug.Log("Target is not alive!");
 
@@ -209,9 +222,10 @@ public class EnemyAI : MonoBehaviour
                 {
                     lastAttack = Time.time + attackCooldown;
                     //Play our attack animation.
+                    Attack();
                 }
 
-                break;
+                return;
             case State.Idle:
                 //if(target != null && Vector2.Distance(rb.position,target.position) > nextWayPointDistance)
                 //{
@@ -220,13 +234,49 @@ public class EnemyAI : MonoBehaviour
                 //}
                 UpdateAnim();
                 break;
+            case State.Dead:
+                break;
 
         }
     }
 
+    public virtual void Attack()
+    {
+
+        if(numOfAttacks > numOfAttacksToTriggerSpecial && animations.Length > 3)
+        {
+            anim.Play(animations[4]);
+        }
+        else
+        {
+            anim.Play(animations[2]);
+        }
+
+    }
+
+    public virtual void Anim_CauseDamageInstance()
+    {
+        //Triggered by the attack animation to cause an instance of damage.
+        //For an imp, we don't actually care the expact postioning of the imp to ally.
+        //As it's a single target strike and as a condition to tirgger the animation we need to be in attack ranage
+        //but we can code whatever we want here including spawning in a colldir.
+        //Or simply, making an attack that piereces multiple lines of eneimes. Or targets the entire column.
+
+        if (target.GetComponent<Ally>() != null)
+        {
+            target.GetComponent<Ally>().RecieveDamage(enemy.primaryDamage,0f,enemy);
+        }
+
+    }
+
+    public virtual void Die()
+    {
+        anim.Play(animations[3]);
+    }
+
     #region Animation Functions
 
-    private void UpdateAnim()
+    public virtual void UpdateAnim()
     {
         switch (state)
         {
@@ -250,7 +300,11 @@ public class EnemyAI : MonoBehaviour
                 }
                 break;
         }
+    }
 
+    public virtual void Anim_Destroy()
+    {
+        Destroy(this.gameObject);
     }
 
     #endregion

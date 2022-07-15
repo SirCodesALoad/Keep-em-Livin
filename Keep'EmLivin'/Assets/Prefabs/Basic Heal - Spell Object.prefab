@@ -45,7 +45,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cooldown: 2
   castTime: 4
-  manacost: 10
+  manacost: 20
   targettingRadius: 0
   animations: []
   player: {fileID: 0}
