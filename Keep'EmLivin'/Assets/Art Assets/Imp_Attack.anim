@@ -89,7 +89,7 @@ AnimationClip:
   m_Events:
   - time: 0.36666667
     functionName: _Anim
-    data: AnimCauseDamageInstance
+    data: Anim_CauseDamageInstance
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 0

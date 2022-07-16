@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using InControl;
 using UnityEngine.UI;
+using PowerTools;
 
 public class PlayerSpellCasting : MonoBehaviour
 {
@@ -26,6 +27,11 @@ public class PlayerSpellCasting : MonoBehaviour
     [SerializeField] private float manaRegenRate = 2f;
     [SerializeField] private float currentTickTimer = 0f;
 
+    #region Animation Variables
+    [SerializeField] private SpriteAnim anim;
+    [SerializeField] private AnimationClip[] animations;
+    #endregion
+
     [SerializeField] private SpellBehiavour[] spellList;
     [SerializeField] private GameObject currentSpellBeingCast;
     public float castCounter = 0f;
@@ -40,6 +46,8 @@ public class PlayerSpellCasting : MonoBehaviour
 
     private void Start()
     {
+        anim = transform.GetChild(0).GetComponent<SpriteAnim>();
+
         device = InputManager.ActiveDevice;
         control = device.GetControl(InputControlType.Action1);
         actions = new ControlActions();
@@ -267,12 +275,30 @@ public class PlayerSpellCasting : MonoBehaviour
             castingBar.fillAmount = 0f;
             castingBarCastingTime.text = "" + sp.castTime;
             castingBarSpellIcon.sprite = sp.icon;
+            UpdateAnim();
         }
         else
         {
             //Code for selecting a target here.
         }
 
+    }
+
+    public void UpdateAnim()
+    {
+        if(isCasting == true && anim.IsPlaying(animations[1]) != true && anim.IsPlaying(animations[2]) != true)
+        {
+            anim.Play(animations[1]);
+            return;
+        }
+
+        anim.Play(animations[0]);
+
+    }
+
+    public void Anim_FinshedWindup()
+    {
+        anim.Play(animations[2]);
     }
 
     public void UpdateManaBar()
@@ -301,7 +327,7 @@ public class PlayerSpellCasting : MonoBehaviour
         isCasting = false;
         currentSpellBeingCast = null;
         StartCoroutine("FadeCastBarOut");
-
+        UpdateAnim();
     }
 
     private IEnumerator FadeCastBarOut()

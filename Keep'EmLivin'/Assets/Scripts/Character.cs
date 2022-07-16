@@ -6,9 +6,8 @@ public class Character : MonoBehaviour
 {
     [SerializeField] protected readonly float healthMax = 100f;
     [SerializeField] protected float health = 100f;
-    [SerializeField] private readonly float armorBase = 20f;
-    [SerializeField] private float armor = 20f;
-    public bool isAlly = false;
+    [SerializeField] protected readonly float armorBase = 20f;
+    [SerializeField] protected float armor = 20f;
     public bool isAtZero = false;
 
 
@@ -105,6 +104,7 @@ public class Character : MonoBehaviour
     public virtual void  AtZero()
     {
         //Here we will ethier play the die animation and destory the object or we'll have them go into a "Downed" state.
+        isAtZero = true;
     }
 
 }
