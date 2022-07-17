@@ -2,6 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Code used and modified from:
+/// ThatOneUnityDev (11 Mar 2022) A Better Wave Spawner (Point-Based-System) - Unity [Source code and Tutorial].
+///https://www.youtube.com/watch?v=7T-MTo8Uaio [Youtube Tutorial], https://pastebin.com/qz4DguSM [Source Code]
+/// </summary>
+
+
 public class WaveSpawner : MonoBehaviour
 {
 
@@ -21,6 +28,7 @@ public class WaveSpawner : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        spawnLocation = transform;
         GenerateWave();
     }
 
@@ -60,7 +68,7 @@ public class WaveSpawner : MonoBehaviour
         currWave++;
         waveValue = currWave * 4;
         GenerateEnemies();
-        manager.enemiesRemaining = enemiesToSpawn.Count-1;
+        manager.enemiesRemaining = enemiesToSpawn.Count;
 
 
     }

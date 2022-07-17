@@ -18,6 +18,10 @@ public class PlayerSpellCasting : MonoBehaviour
     [SerializeField] private CanvasGroup castingBarCanvasGroup;
 
     [SerializeField] private Image manaBar;
+
+    [SerializeField] private Image spell1Icon;
+    [SerializeField] private Image spell2Icon;
+    //[SerializeField] private Image swapPostionsIcon;
     #endregion
 
 
@@ -47,6 +51,8 @@ public class PlayerSpellCasting : MonoBehaviour
     private void Start()
     {
         anim = transform.GetChild(0).GetComponent<SpriteAnim>();
+        spell1Icon.sprite = spellList[0].icon;
+        spell2Icon.sprite = spellList[1].icon;
 
         device = InputManager.ActiveDevice;
         control = device.GetControl(InputControlType.Action1);

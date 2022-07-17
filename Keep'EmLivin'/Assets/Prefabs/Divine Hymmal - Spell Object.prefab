@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3094515863718211682}
   - component: {fileID: 4715604746140336930}
   m_Layer: 0
-  m_Name: Channeled Heal - Spell Object
+  m_Name: Divine Hymmal - Spell Object
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -45,10 +45,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cooldown: 8
   castTime: 6
-  manacost: 0
+  manacost: 45
   targettingRadius: 0
   animations: []
   player: {fileID: 0}
-  castingBarColour: {r: 0, g: 0, b: 0, a: 0}
+  icon: {fileID: -2392529025563154390, guid: fe7f7f3410e498a4f9c627cd75adcc66, type: 3}
+  castingBarColour: {r: 0.9622642, g: 0.6561738, b: 0.004538993, a: 1}
   targetPrefs: 0
-  amountToHealPerTick: 5
+  amountToHealPerTick: 7.5

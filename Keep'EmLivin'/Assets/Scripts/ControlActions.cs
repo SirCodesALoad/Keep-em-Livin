@@ -11,6 +11,7 @@ public class ControlActions : PlayerActionSet
     public PlayerAction abilityThree;
     public PlayerAction abilityFour;
     public PlayerAction swapAllyPostion;
+    public PlayerAction restartGame;
 
     public ControlActions()
     {
@@ -18,6 +19,7 @@ public class ControlActions : PlayerActionSet
         abilityOne = CreatePlayerAction("Action 1");
         abilityTwo = CreatePlayerAction("Action 2");
         swapAllyPostion = CreatePlayerAction("Action 5");
+        restartGame = CreatePlayerAction("Action10");
     }
 
 

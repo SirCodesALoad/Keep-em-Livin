@@ -44,6 +44,7 @@ public class EnemyAI : MonoBehaviour
 
     void Start()
     {
+        player = GameObject.FindWithTag("Player").transform;
         anim = transform.GetChild(0).GetComponent<SpriteAnim>();
       
 
@@ -105,7 +106,7 @@ public class EnemyAI : MonoBehaviour
 
     private void CheckIfThereIsACloserTarget()
     {
-        Debug.Log("Check if there is a closer target.");
+        //Debug.Log("Check if there is a closer target.");
         Transform closestTarget = target;
         state = State.Idle;
 
@@ -285,8 +286,8 @@ public class EnemyAI : MonoBehaviour
 
     public virtual void Attack()
     {
-
-        if(numOfAttacks > numOfAttacksToTriggerSpecial && animations.Length > 3)
+        numOfAttacks++;
+        if(numOfAttacks > numOfAttacksToTriggerSpecial && animations.Length > 4)
         {
             anim.Play(animations[4]);
         }
@@ -307,6 +308,7 @@ public class EnemyAI : MonoBehaviour
         if(target == player)
         {
             //game over.
+            KeepEmLivinEvents.playerDeath.Invoke();
         }
 
         Ally toDamage = target.GetComponent<Ally>();
@@ -315,6 +317,40 @@ public class EnemyAI : MonoBehaviour
         {
             //Debug.Log("DamageCall!");
             toDamage.RecieveDamage(enemy.primaryDamage,0f,enemy);
+        }
+
+
+
+    }
+
+    public virtual void Anim_SpecialAttack()
+    {
+        //Triggered by the attack animation to cause an instance of damage.
+        //For an imp, we don't actually care the expact postioning of the imp to ally.
+        //As it's a single target strike and as a condition to tirgger the animation we need to be in attack ranage
+        //but we can code whatever we want here including spawning in a colldir.
+        //Or simply, making an attack that piereces multiple lines of eneimes. Or targets the entire column.
+        Debug.Log("Special Went Off!");
+        Slottable toDamage = target.GetComponent<Slottable>();
+
+        if (toDamage != null)
+        {
+            //Debug.Log("DamageCall!");
+            Slot[] column = toDamage.postion.GetAllSlots();
+
+            for (int i = 0; i < column.Length; i++)
+            {
+                if(column[i].occupier != null)
+                {
+                    if (column[i].occupier.GetComponent<Ally>()!= null)
+                    {
+                        column[i].occupier.GetComponent<Ally>().RecieveDamage(enemy.specialDamage, 0f, enemy);
+
+                    }
+
+                }
+            }
+
         }
 
 
@@ -332,7 +368,16 @@ public class EnemyAI : MonoBehaviour
 
     public virtual void UpdateAnim()
     {
-        switch (state)
+
+        if (animations.Length > 4)
+        {
+            if (anim.IsPlaying(animations[4]) == true)
+            {
+                return;
+            }
+        }
+
+            switch (state)
         {
             case State.Idle:
                 if (anim.IsPlaying(animations[0]) != true)

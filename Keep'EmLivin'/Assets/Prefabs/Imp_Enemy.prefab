@@ -1,5 +1,35 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1467817792
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1467817793}
+  m_Layer: 0
+  m_Name: DamageLocation
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1467817793
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1467817792}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.82, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 8335168558924069835}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8335168558921486945
 GameObject:
   m_ObjectHideFlags: 0
@@ -73,8 +103,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 2e4561dac74c95f4a8690900264ed6ff, type: 3}
-  m_Color: {r: 0.46226418, g: 0.023985408, b: 0.023985408, a: 1}
+  m_Sprite: {fileID: 503689610145065454, guid: 79a3a165f22c8b941bb4f2c2c05013f9, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -115,7 +145,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89a8ca009b14008429f621808bba2086, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_defaultAnim: {fileID: 0}
+  m_defaultAnim: {fileID: 7400000, guid: c62b3aaa5eb8d9b4d97dc20c186d677d, type: 2}
 --- !u!1 &8335168558924069832
 GameObject:
   m_ObjectHideFlags: 0
@@ -129,8 +159,9 @@ GameObject:
   - component: {fileID: 8335168558924069834}
   - component: {fileID: 8335168558924069813}
   - component: {fileID: 8335168558924069815}
+  - component: {fileID: 1074574736}
   m_Layer: 0
-  m_Name: Enemy
+  m_Name: Imp_Enemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -148,6 +179,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 8335168558921486944}
+  - {fileID: 1467817793}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -164,9 +196,9 @@ CircleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: -0.7}
   serializedVersion: 2
-  m_Radius: 0.5
+  m_Radius: 0.4
 --- !u!114 &8335168558924069834
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -182,13 +214,22 @@ MonoBehaviour:
   player: {fileID: 0}
   target: {fileID: 0}
   state: 2
-  moveSpeed: 50
-  attackRanage: 3
-  attackCooldown: 1
+  moveSpeed: 75
+  attackRanage: 2
+  attackCooldown: 2
   lastAttack: 0
   nextWayPointDistance: 3
+  attemptToFindCloserTargetTimer: 0
+  numOfAttacks: 0
+  numOfAttacksToTriggerSpecial: 0
   currentWayPoint: 0
   reachedEndOfPath: 0
+  anim: {fileID: 0}
+  animations:
+  - {fileID: 7400000, guid: c62b3aaa5eb8d9b4d97dc20c186d677d, type: 2}
+  - {fileID: 7400000, guid: cac9022d990fe8f40b647400d2a26b96, type: 2}
+  - {fileID: 7400000, guid: d4c11eea0cc593945a02b25775362777, type: 2}
+  - {fileID: 7400000, guid: e3b95a93155e41e49b88d5c77dfe49e3, type: 2}
 --- !u!50 &8335168558924069813
 Rigidbody2D:
   serializedVersion: 4
@@ -238,3 +279,21 @@ MonoBehaviour:
   tagPenalties: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   graphMask:
     value: -1
+--- !u!114 &1074574736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8335168558924069832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2687e0d4b62880b4bbd1b5740fe17d66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: 65
+  armor: 0
+  isAtZero: 0
+  whoDamagedMe: {fileID: 0}
+  primaryDamage: 10
+  specialDamage: 20

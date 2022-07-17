@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8852452909701142629}
   - component: {fileID: 3724799973127327124}
   m_Layer: 0
-  m_Name: Basic Heal - Spell Object
+  m_Name: Cure Wounds - Spell Object
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -49,7 +49,7 @@ MonoBehaviour:
   targettingRadius: 0
   animations: []
   player: {fileID: 0}
-  icon: {fileID: 0}
+  icon: {fileID: 431235789699097567, guid: 1baad6c820215544fbae88daeec4e0f5, type: 3}
   castingBarColour: {r: 1, g: 0.9771399, b: 0.3160377, a: 1}
   targetPrefs: 0
   amountToHeal: 50

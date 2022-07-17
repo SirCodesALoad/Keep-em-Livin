@@ -158,6 +158,21 @@ public class Ally : Character
 
     }
 
+    public void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(state == State.Idle)
+        {
+            if (collision.GetComponent<Enemy>())
+            {
+                whoDamagedMe = collision.GetComponent<Enemy>();
+            }
+
+        }
+
+
+    }
+
+
     public virtual void UpdateAnim()
     {
         switch (state)

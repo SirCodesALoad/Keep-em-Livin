@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using InControl;
 
 public class GameMechanicManager : MonoBehaviour
 {
@@ -21,13 +22,26 @@ public class GameMechanicManager : MonoBehaviour
     public float gracePeroidBetweenWaves = 10f;
     public float gracePeroidTimer = 10f;
 
-    // Start is called before the first frame update
+
+    ControlActions actions;
+
+    InputDevice device;
+    InputControl control;
+
     void Start()
     {
+        device = InputManager.ActiveDevice;
+        control = device.GetControl(InputControlType.Action1);
+        actions = new ControlActions();
+        actions.restartGame.AddDefaultBinding(Key.T);
+
         KeepEmLivinEvents.enemyDeath.AddListener(EnemyDeath);
+        KeepEmLivinEvents.playerDeath.AddListener(PlayerDeath);
+        StartCoroutine("HideOnDelay");
+
     }
 
-    
+
 
     // Update is called once per frame
     void Update()
@@ -37,9 +51,10 @@ public class GameMechanicManager : MonoBehaviour
             case GameState.BetweenWaves:
                 if (gracePeroidTimer <= 0)
                 {
+                    gracePeroidTimer = gracePeroidBetweenWaves;
                     waveSpawner.GenerateWave();
                     gameState = GameState.OnGoingWave;
-                   
+
                 }
                 else
                 {
@@ -48,7 +63,24 @@ public class GameMechanicManager : MonoBehaviour
                 break;
             case GameState.OnGoingWave:
                 break;
+            case GameState.GameOver:
+                if (actions.restartGame.WasPressed)
+                {
+                    Restart();
+
+                }
+                break;
         }
+    }
+
+    public void PlayerDeath()
+    {
+
+        gameState = GameState.GameOver;
+        GameTextBox.enabled = true;
+        GameTextBox.text = "You Failed to Repel the Demons";
+
+
     }
 
     public void EnemyDeath()
@@ -71,7 +103,7 @@ public class GameMechanicManager : MonoBehaviour
             return;
         }
         GameTextBox.enabled = true;
-        GameTextBox.text = "Wave: " + waveSpawner.currWave+1 + " Begins shortly.";
+        GameTextBox.text = "Wave: " + waveSpawner.currWave + " Begins shortly.";
         StartCoroutine("HideOnDelay");
     }
 
@@ -88,14 +120,12 @@ public class GameMechanicManager : MonoBehaviour
         }
         GameTextBox.enabled = false;
 
-        resetGameButton.enabled = false;
     }
 
     public void OnEndGame()
     {
         GameTextBox.enabled = true;
         GameTextBox.text = "You Successfuly Repelled The Demons";
-        resetGameButton.enabled = true;
 
     }
 
@@ -114,5 +144,6 @@ public enum GameState
 public static class KeepEmLivinEvents
 {
     public static UnityEvent enemyDeath = new UnityEvent();
+    public static UnityEvent playerDeath = new UnityEvent();
 
 }
